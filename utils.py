@@ -1,19 +1,48 @@
 import argparse
+import bs4
 import os
 import re
+import requests
 import youtube_dl
 from mutagen import File
+from mutagen.id3 import ID3, APIC, _util
+from mutagen import File
+from mutagen.mp3 import EasyMP3
 # import sysargs
 
+global DOWNLOADED_FILE
+
+
+def my_hook(d):
+    if d['status'] == 'finished':
+        print(d['filename'])
+        print("This thing flippin works you're a ledge MichaelJAndy!!!")
+        global DOWNLOADED_FILE
+        if '.webm' in d['filename']:
+            DOWNLOADED_FILE = d['filename'][:-4]+'mp3'
+        else:
+            DOWNLOADED_FILE = d['filename'][:-3]+'mp3'
+
 ydl_opts = {
-	'format': 'bestaudio/best',
-	'extractaudio' : True,  # only keep the audio
-	'audioformat' : "mp3",  # convert to mp3 
-	'outtmpl' : "music_new/%(title)s-%(id)s.mp3",
-	'noplaylist' : True,    # only download single song, not playlist
-	'quiet' : True, # Don't print anything
-	'no_warnings' : True,
+    'format': '140',#'bestaudio/best',
+    # 'extractaudio': True,  # only keep the audio
+    # 'audioformat': "mp3",  # convert to mp3
+    'outtmpl': "music_new/%(title)s-%(id)s.%(ext)s",
+    'noplaylist': True,    # only download single song, not playlist
+    'quiet': True,  # Don't print anything
+    'no_warnings': True,
+    'forcefilename': True,
+    'progress_hooks': [my_hook],
+    # 'postprocessors': [
+    #     {
+    #         'key': 'FFmpegExtractAudio', 'preferredcodec': 'm4a',
+    #      'preferredquality': '140',
+    #     }
+    #     ,{'key': 'FFmpegMetadata'},
+    # ],
+    'restrictfilenames': True,
 }
+
 
 def Wrapper():
     """ 
@@ -43,8 +72,13 @@ def main():
                         help="Specify the file name, to download using reference as.")
     parser.add_argument("-u", "--url", type=str,
                         help="Specify the url where list is located.")
-    parser.add_argument("-r", "--repair-only", action="store_true",
+    parser.add_argument("-r", "--repair_only", action="store_true",
                         help="Skip downloading and only add metadata to the files.")
+    parser.add_argument("--ignore_downloaded", action="store_true",
+                        help="Skip checking the downloaded.txt and download all files.")
+    parser.add_argument("--no_downloaded", action="store_true",
+                        help="Skip adding the downloaded files to downloaded.txt.")
+
     args = parser.parse_args()
     if args.url:
         print("You want an url:", args.url)
@@ -52,27 +86,33 @@ def main():
         for t in args.titles:
             Download(t)
 
-    # if args.file:
-        
+    if args.file:
+        with open(args.file) as f:
+            tbd = f.readlines()
+            GetMusicFromList(tbd, args.ignore_downloaded, args.no_downloaded)
 
 
-
-
-def GetMusicFromList(queue):
+def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
     """
     For each item in each line in list,
     downloads the music file if not already downloaded and adds that to the
     DOWNLOADED file list.
     """
+
+    '''Remove next 3.'''
+    downloaded = []
+    DetailsFlag = False
+    ExtendedFlag = False
     for song in queue:
         if song in downloaded and not IgnoreDownloadedFlag:
             continue
-        audio = Download(song)
+        Download(song)
+        audio = DOWNLOADED_FILE
         if not DetailsFlag:
             (art, title) = GetBasicDetails(song)
             if not ExtendedFlag:
-                extDetail = GetExtendedDetails(art, title)  # A dictionary
-                UpdateDetails(audio, extDetail)
+                extDetail = GetExtendedDetails(song)  # A dictionary
+                UpdateDetails(DOWNLOADED_FILE, extDetail)
             else:
                 UpdateDetails(audio, {'artist': art, 'title': title})
         if not NoDownloadedAddFlag:
@@ -101,9 +141,12 @@ def Download(song):
     """
     Download a song using Youtube-dl and return it's file path.
     """
+    done_list = []
     if song.strip() not in done_list:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download(['ytsearch:' + str(song)])
+            resutl = ydl.download(['ytsearch:' + str(song)])
+            # result = ydl.extract_info('https://www.youtube.com/watch?v=AZ1pHmWhIuY', download=True)
+            # print(result)
         AddToDownloaded(song)
 
 
@@ -112,14 +155,69 @@ def GetBasicDetails(song):
     Return the artist and title of the song. 
     """
     # TODO: Use RE to return the artist, title combination extracted from list.
-    return (artist, title)
+    return ('artist', 'title')
+
+
+def GetExtendedDetails(song):
+    """Returns full details of song."""
+    details = {}
+    res = requests.get("https://www.google.co.in/search?q=genius " + song)
+    soup = bs4.BeautifulSoup(res.text, 'lxml')
+    link = soup.select('.r a')[0].get('href')
+
+    res2 = requests.get("https://google.com" + link)
+    soup = bs4.BeautifulSoup(res2.text, 'lxml')
+
+    infos = soup.select('.metadata_unit-info a')
+    for info in infos:
+        if 'albums' in info.get('href'):
+            details['album'] = info.getText().strip()
+            break
+    details['album_art'] = soup.select('.cover_art img')[0].get('src')
+    details['title'] = soup.select('h1')[0].getText().strip()
+    details['artist'] = soup.select('h2')[0].getText().strip()
+
+    lyrics = soup.select('.lyrics')
+    l = ""
+    for lyr in lyrics:
+        l += lyr.getText()
+    details['lyrics'] = l
+    print("\n\n\n\n")
+    return details
 
 
 def UpdateDetails(audio, details):
     """
     Update the metadata of the files.
     """
-    pass
+    print("Yo fam Imma update a lot of shit here, basically only to this little thing call " + audio)
+
+    img = requests.get(details['album_art'], stream=True)
+    img = img.raw
+    print(audio)
+    file = File(audio)
+    try:
+        file.add_tags()
+    except _util.error:
+        pass
+    file.tags.add(
+        APIC(
+            encoding=3,  # UTF-8
+            mime='image/png',
+            type=3,  # 3 is for album art
+            desc='covr',
+            data=img.read()  # Reads and adds album art
+        )
+    )
+    file.save()
+    print("Current tags:", file.tags)
+    file = File(audio)
+    file["\xa9ART"] = details['artist']
+    file["\xa9nam"] = details['title']
+    file["\xa9alb"] = details['album']
+    file.save()
+
+    print("Done yo!")
 
 
 def AddToDownloaded(song):
@@ -129,5 +227,6 @@ def AddToDownloaded(song):
     """
     pass
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
