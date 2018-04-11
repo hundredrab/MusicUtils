@@ -1,11 +1,12 @@
 import argparse
 import bs4
+import eyed3
 import os
 import re
 import requests
 import youtube_dl
 from mutagen import File
-from mutagen.id3 import ID3, APIC, _util
+from mutagen.id3 import ID3, APIC, _util, USLT
 from mutagen import File
 from mutagen.mp3 import EasyMP3
 # import sysargs
@@ -15,7 +16,7 @@ global DOWNLOADED_FILE
 
 def my_hook(d):
     if d['status'] == 'finished':
-        print(d['filename'])
+
         print("This thing flippin works you're a ledge MichaelJAndy!!!")
         global DOWNLOADED_FILE
         if '.webm' in d['filename']:
@@ -24,7 +25,12 @@ def my_hook(d):
             DOWNLOADED_FILE = d['filename'][:-3]+'mp3'
 
 ydl_opts = {
-    'format': '140',#'bestaudio/best',
+    'format': 'bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
     # 'extractaudio': True,  # only keep the audio
     # 'audioformat': "mp3",  # convert to mp3
     'outtmpl': "music_new/%(title)s-%(id)s.%(ext)s",
@@ -194,7 +200,6 @@ def UpdateDetails(audio, details):
 
     img = requests.get(details['album_art'], stream=True)
     img = img.raw
-    print(audio)
     file = File(audio)
     try:
         file.add_tags()
@@ -210,13 +215,19 @@ def UpdateDetails(audio, details):
         )
     )
     file.save()
-    print("Current tags:", file.tags)
-    file = File(audio)
-    file["\xa9ART"] = details['artist']
-    file["\xa9nam"] = details['title']
-    file["\xa9alb"] = details['album']
+    file = EasyMP3(audio)
+    file["artist"]=(details['artist'])
+    file["albumartist"]=details['artist']
+    file["title"] = details['title']
+    file["album"] = details['album']
     file.save()
-
+    print("Current tags:", file.tags)
+    
+    file = ID3(audio)
+    file[u"USLT::'en'"] = (USLT(encoding=3, lang=u'eng', desc=u'desc', text=details['lyrics']))
+    file.save()
+    # file = eyed3.load(audio)
+    # file.tag.lyrics.set(u''+details['lyrics'])
     print("Done yo!")
 
 
