@@ -216,13 +216,13 @@ def UpdateDetails(audio, details):
     )
     file.save()
     file = EasyMP3(audio)
-    if details['artist']:
+    keys = details.keys()
+    if 'artist' in keys:
         file["artist"]=(details['artist'])
-    if details['albumartist']:
         file["albumartist"]=details['artist']
-    if details['title']:
+    if 'title' in keys:
         file["title"] = details['title']
-    if details['album']:
+    if 'album' in keys:
         file["album"] = details['album']
     file.save()
     print("Current tags:", file.tags)
