@@ -57,7 +57,7 @@ def Wrapper():
 
     # TODO: This should properly handle the following, in addition to the flags:
     # Default: A single song name in the format '{artist} - {song}'.
-    # Urls— Billboards and Top Tens at the least.
+    # Urls- Billboards and Top Tens at the least.
     # Keywords for billboards genres.
     # Filepaths for list of songs to download.
     # Repair only: Accept a filepath and only repair the metadata of the songs there.
@@ -216,10 +216,14 @@ def UpdateDetails(audio, details):
     )
     file.save()
     file = EasyMP3(audio)
-    file["artist"]=(details['artist'])
-    file["albumartist"]=details['artist']
-    file["title"] = details['title']
-    file["album"] = details['album']
+    if details['artist']:
+        file["artist"]=(details['artist'])
+    if details['albumartist']:
+        file["albumartist"]=details['artist']
+    if details['title']:
+        file["title"] = details['title']
+    if details['album']:
+        file["album"] = details['album']
     file.save()
     print("Current tags:", file.tags)
     
