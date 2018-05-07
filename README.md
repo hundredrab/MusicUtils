@@ -7,14 +7,18 @@ Make sure you're using `python3`.
 
 ### Requirements:
 
-sudo apt install ffmpeg
+`sudo apt install ffmpeg`
 
-sudo apt install youtube-dl
+`sudo apt install youtube-dl`
 
 
 ### Clone the repository
 
-git clone https://github.com/hundredrab/MusicUtils.git
+`git clone https://github.com/hundredrab/MusicUtils.git`
+
+Navigate into the project directory
+
+`cd MusicUtils`
 
 
 ## Usage
