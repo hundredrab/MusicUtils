@@ -3,13 +3,30 @@ Library to download music from list of songs (and websites such as billboards.co
 
 ## Installation
 
-Make sure you're using `python3`.
+Make sure you're using `python3` and have `pip` installed and enabled.
 
 ### Requirements:
+
+**On a linux system:**
 
 `sudo apt install ffmpeg`
 
 `sudo apt install youtube-dl`
+
+**On windows:**
+
+`pip install youtube-dl`
+
+Installing ffmpeg is slightly trickier. [Read the instruction here.](http://adaptivesamples.com/how-to-install-ffmpeg-on-windows/). 
+
+
+**On MacOS**
+
+`brew install ffmpeg`
+
+`brew link ffmpeg`
+
+`brew install youtube-dl`
 
 
 ### Clone the repository
@@ -22,9 +39,7 @@ Navigate into the project directory
 
 ### Installing dependencies
 
-`pip install requests bs4 mutagen eyed3`
-
-`pip install lxml`
+`pip install requests bs4 mutagen eyed3 lxml`
 
 
 ## Usage
