@@ -20,6 +20,12 @@ Navigate into the project directory
 
 `cd MusicUtils`
 
+### Installing dependencies
+
+`pip install requests bs4 mutagen eyed3`
+
+`pip install lxml`
+
 
 ## Usage
 
@@ -34,3 +40,4 @@ Use
 `python utils.py -f "songlist.txt"`
 
 to download files using a text file containing song titles in individual lines.
+`songlist.txt` is a list of song title-artist pairs, one in a line.
