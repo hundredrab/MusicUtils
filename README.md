@@ -17,7 +17,7 @@ Make sure you're using `python3` and have `pip` installed and enabled.
 
 `pip install youtube-dl`
 
-Installing ffmpeg is slightly trickier. [Read the instruction here.](http://adaptivesamples.com/how-to-install-ffmpeg-on-windows/). 
+Installing ffmpeg is slightly trickier. [Read the instructions here](http://adaptivesamples.com/how-to-install-ffmpeg-on-windows/). 
 
 
 **On MacOS**
