@@ -1,11 +1,16 @@
 from setuptools import setup
 
+with open('README.rst') as README:
+    long_description = README.read()
 setup(
     name='MusicUtils',
     version='0.1.dev1',
     packages=['musicutils', ],
     license='MIT',
-    long_description='Helpful library to download music and metadata from youtube using youtube-dl and by scraping from genius.com.',
+    description='Helpful library to download music from youtube using youtube-dl and add metadata.',
+    long_description=long_description,
+    author='Sourab Jha',
+    author_email='jha.sourab@gmail.com',
     install_requires=[
         'mutagen',
         'eyed3',
@@ -20,6 +25,6 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     entry_points=dict(console_scripts=[
-            'mutils = musicutils.utils:main', ]),
-    
+        'mutils = musicutils.utils:main', ]),
+
 )

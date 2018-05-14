@@ -1,23 +1,23 @@
 # MusicUtils
-Library to download music from list of songs (and websites such as billboards.com) and updating their metadata (Title, TrackNo, Artist, Album, AlbumArt, Lyrics etc.) **Under Construction**
+Library to download music from list of songs (and websites such as billboards.com) and updating their metadata (Title, TrackNo, Artist, Album, AlbumArt, Lyrics etc.) //**In development**
 
 ## Installation
 
-Make sure you're using `python3` and have `pip` installed and enabled.
+Make sure you're using `python3` and have `pip` installed and enabled. On the command line, simply run:
+
+`pip install musicutils`
 
 ### Requirements:
+
+MusicUtils requires ffmpeg to convert files to mp3.
 
 **On a linux system:**
 
 `sudo apt install ffmpeg`
 
-`sudo apt install youtube-dl`
-
 **On windows:**
 
-`pip install youtube-dl`
-
-Installing ffmpeg is slightly trickier. [Read the instructions here](http://adaptivesamples.com/how-to-install-ffmpeg-on-windows/). 
+Installing ffmpeg is slightly trickier on windows. [Read the instructions here](http://adaptivesamples.com/how-to-install-ffmpeg-on-windows/). 
 
 
 **On MacOS**
@@ -26,10 +26,30 @@ Installing ffmpeg is slightly trickier. [Read the instructions here](http://adap
 
 `brew link ffmpeg`
 
-`brew install youtube-dl`
+## Usage
+
+MusicUtils can be invoked from the commandline after installation.  
+
+`mutils "Song Item 1" "Song Item 2" "Song Item 3" [...]` 
+
+to download individual files.
+
+For example, 
+
+`mutils "A Great Big World - Say Something"`
+
+Use  `mutils -f "songlist.txt"` to download files using a text file containing song titles in individual lines.
+
+`songlist.txt` is a list of song title-artist pairs, one in a line.
+
+You may also replace a song title by it's incomplete lyrics, and in most cases, it should work just fine.
+
+In case of weird happenings, remember that the first result on Youtube is what is downloaded.
 
 
-### Clone the repository
+## Manual installation of the project
+
+Clone the repository
 
 `git clone https://github.com/hundredrab/MusicUtils.git`
 
@@ -37,22 +57,8 @@ Navigate into the project directory
 
 `cd MusicUtils`
 
-### Installing dependencies
+Install musicutils and its dependencies
 
-`pip install requests bs4 mutagen eyed3 lxml`
+`python setup.py instal`
 
 
-## Usage
-
-Use 
-
-`python utils.py "Song Item 1" "Song Item 2" "Song Item 3" [...]` 
-
-to download individual files.
-
-Use 
-
-`python utils.py -f "songlist.txt"`
-
-to download files using a text file containing song titles in individual lines.
-`songlist.txt` is a list of song title-artist pairs, one in a line.
