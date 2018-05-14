@@ -89,8 +89,7 @@ def main():
     if args.url:
         print("You want an url:", args.url)
     if args.titles:
-        for t in args.titles:
-            Download(t)
+        GetMusicFromList(args.titles, args.ignore_downloaded, args.no_downloaded)
 
     if args.file:
         with open(args.file) as f:
