@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+ 
 import argparse
 import bs4
 import eyed3
@@ -168,54 +170,60 @@ def GetExtendedDetails(song):
     details = {}
     res = requests.get("https://www.google.co.in/search?q=genius " + song)
     soup = bs4.BeautifulSoup(res.text, 'lxml')
-    link = soup.select('.r a')[0].get('href')
+    try:
+        link = soup.select('.r a')[0].get('href')
 
-    res2 = requests.get("https://google.com" + link)
-    soup = bs4.BeautifulSoup(res2.text, 'lxml')
+        res2 = requests.get("https://google.com" + link)
+        soup = bs4.BeautifulSoup(res2.text, 'lxml')
 
-    infos = soup.select('.metadata_unit-info a')
-    for info in infos:
-        if 'albums' in info.get('href'):
-            details['album'] = info.getText().strip()
-            break
-    details['album_art'] = soup.select('.cover_art img')[0].get('src')
-    details['title'] = soup.select('h1')[0].getText().strip()
-    details['artist'] = soup.select('h2')[0].getText().strip()
+        infos = soup.select('.metadata_unit-info a')
+        for info in infos:
+            if 'albums' in info.get('href'):
+                details['album'] = info.getText().strip()
+                break
+        details['title'] = soup.select('h1')[0].getText().strip()
+        details['artist'] = soup.select('h2')[0].getText().strip()
+        details['album_art'] = soup.select('.cover_art img')[0].get('src')
 
-    lyrics = soup.select('.lyrics')
-    l = ""
-    for lyr in lyrics:
-        l += lyr.getText()
-    details['lyrics'] = l
-    print("\n\n\n\n")
-    return details
+        lyrics = soup.select('.lyrics')
+        l = ""
+        for lyr in lyrics:
+            l += lyr.getText()
+        details['lyrics'] = l
+        print("\n\n\n\n")
+        return details
+    except IndexError:
+        print("Error gettings details. Skipping this part")
+        return details
 
 
 def UpdateDetails(audio, details):
     """
     Update the metadata of the files.
     """
-    print("Yo fam Imma update a lot of shit here, basically only to this little thing call " + audio)
-
-    img = requests.get(details['album_art'], stream=True)
-    img = img.raw
-    file = File(audio)
-    try:
-        file.add_tags()
-    except _util.error:
-        pass
-    file.tags.add(
-        APIC(
-            encoding=3,  # UTF-8
-            mime='image/png',
-            type=3,  # 3 is for album art
-            desc='covr',
-            data=img.read()  # Reads and adds album art
-        )
-    )
-    file.save()
-    file = EasyMP3(audio)
     keys = details.keys()
+    
+    print("Yo fam Imma update a lot of shit here, basically only to this little thing call " + audio)
+    
+    if 'album_art' in keys:
+        img = requests.get(details['album_art'], stream=True)
+        img = img.raw
+        file = File(audio)
+        try:
+            file.add_tags()
+        except _util.error:
+            pass
+        file.tags.add(
+            APIC(
+                encoding=3,  # UTF-8
+                mime='image/png',
+                type=3,  # 3 is for album art
+                desc='covr',
+                data=img.read()  # Reads and adds album art
+            )
+        )
+        file.save()
+    file = EasyMP3(audio)
     if 'artist' in keys:
         file["artist"]=(details['artist'])
         file["albumartist"]=details['artist']
@@ -227,11 +235,10 @@ def UpdateDetails(audio, details):
     print("Current tags:", file.tags)
     
     file = ID3(audio)
-    file[u"USLT::'en'"] = (USLT(encoding=3, lang=u'eng', desc=u'desc', text=details['lyrics']))
-    file.save()
-    # file = eyed3.load(audio)
-    # file.tag.lyrics.set(u''+details['lyrics'])
-    print("Done yo!")
+    if 'lyrics' in keys:
+        file[u"USLT::'en'"] = (USLT(encoding=3, lang=u'eng', desc=u'desc', text=details['lyrics']))
+        file.save()
+    print("Done!")
 
 
 def AddToDownloaded(song):
