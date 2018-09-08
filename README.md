@@ -44,7 +44,7 @@ Use  `mutils -f "songlist.txt"` to download files using a text file containing s
 
 You may also replace a song title by it's incomplete lyrics, and in most cases, it should work just fine.
 
-In case of weird happenings, remember that the first result on Youtube is what is downloaded.
+In case of weird results, remember that the first result on Youtube is what is downloaded.
 
 
 ## Manual installation of the project
@@ -59,6 +59,6 @@ Navigate into the project directory
 
 Install musicutils and its dependencies
 
-`python setup.py instal`
+`python setup.py install`
 
 
