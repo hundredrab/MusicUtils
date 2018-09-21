@@ -18,8 +18,6 @@ global DOWNLOADED_FILE
 
 def my_hook(d):
     if d['status'] == 'finished':
-
-        print("This thing flippin works you're a ledge MichaelJAndy!!!")
         global DOWNLOADED_FILE
         if '.webm' in d['filename']:
             DOWNLOADED_FILE = d['filename'][:-4]+'mp3'

@@ -1,10 +1,10 @@
 from setuptools import setup
 
-with open('README.rst') as README:
+with open('README.md') as README:
     long_description = README.read()
 setup(
     name='MusicUtils',
-    version='0.1.dev1',
+    version='0.1.dev2',
     packages=['musicutils', ],
     license='MIT',
     description='Helpful library to download music from youtube using youtube-dl and add metadata.',
