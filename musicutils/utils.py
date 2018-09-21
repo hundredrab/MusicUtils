@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
-
-import argparse
-import bs4
-import eyed3
-import os
-import re
-import requests
-import youtube_dl
-from mutagen import File
-from mutagen.id3 import ID3, APIC, _util, USLT
-from mutagen import File
-from mutagen.mp3 import EasyMP3
+try:
+    import argparse
+    import bs4
+    import eyed3
+    import os
+    import re
+    import requests
+    import youtube_dl
+    from mutagen import File
+    from mutagen.id3 import ID3, APIC, _util, USLT
+    from mutagen import File
+    from mutagen.mp3 import EasyMP3
+except ModuleNotFoundError:
+    print("Couldn't import all the requirements. Maybe reinstall musicutils?\n\n")
+    raise
 # import sysargs
 
 global DOWNLOADED_FILE
+global verbose
+
+verbose = True
 
 
 def my_hook(d):
@@ -32,21 +38,12 @@ ydl_opts = {
         'preferredcodec': 'mp3',
         'preferredquality': '192',
     }],
-    # 'extractaudio': True,  # only keep the audio
-    # 'audioformat': "mp3",  # convert to mp3
     'outtmpl': "music_new/%(title)s-%(id)s.%(ext)s",
     'noplaylist': True,    # only download single song, not playlist
     'quiet': True,  # Don't print anything
     'no_warnings': True,
     'forcefilename': True,
     'progress_hooks': [my_hook],
-    # 'postprocessors': [
-    #     {
-    #         'key': 'FFmpegExtractAudio', 'preferredcodec': 'm4a',
-    #      'preferredquality': '140',
-    #     }
-    #     ,{'key': 'FFmpegMetadata'},
-    # ],
     'restrictfilenames': True,
 }
 
@@ -74,17 +71,23 @@ def main():
     done_list = []
     parser = argparse.ArgumentParser()
     parser.add_argument("titles", type=str, nargs='*',
-                        help="All the names separated by a space will be searched and downloaded.")
+                        help="All the names separated by a space will be \
+                        searched and downloaded.")
     parser.add_argument("-f", "--file", type=str,
-                        help="Specify the file name, to download using reference as.")
+                        help="Specify the file name, to download using \
+                        reference as.")
     parser.add_argument("-u", "--url", type=str,
                         help="Specify the url where list is located.")
     parser.add_argument("-r", "--repair_only", action="store_true",
-                        help="Skip downloading and only add metadata to the files.")
+                        help="Skip downloading and only add metadata.")
     parser.add_argument("--ignore_downloaded", action="store_true",
-                        help="Skip checking the downloaded.txt and download all files.")
+                        help="Skip checking the downloaded.txt and \
+                        download all files.")
     parser.add_argument("--no_downloaded", action="store_true",
-                        help="Skip adding the downloaded files to downloaded.txt.")
+                        help="Skip adding the downloaded files to \
+                        downloaded.txt.")
+    parser.add_argument("-c", "--config", type=str,
+                        help="Specify config file.")
 
     args = parser.parse_args()
     if args.url:
