@@ -26,5 +26,6 @@ setup(
     ],
     entry_points=dict(console_scripts=[
         'mutils = musicutils.utils:main', ]),
+    url='https://github.com/hundredrab/musicutils',
 
 )

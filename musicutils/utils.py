@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
- 
+
 import argparse
 import bs4
 import eyed3
@@ -23,6 +23,7 @@ def my_hook(d):
             DOWNLOADED_FILE = d['filename'][:-4]+'mp3'
         else:
             DOWNLOADED_FILE = d['filename'][:-3]+'mp3'
+
 
 ydl_opts = {
     'format': 'bestaudio/best',
@@ -89,12 +90,17 @@ def main():
     if args.url:
         print("You want an url:", args.url)
     if args.titles:
-        GetMusicFromList(args.titles, args.ignore_downloaded, args.no_downloaded)
+        GetMusicFromList(args.titles, args.ignore_downloaded,
+                         args.no_downloaded)
 
     if args.file:
-        with open(args.file) as f:
-            tbd = f.readlines()
-            GetMusicFromList(tbd, args.ignore_downloaded, args.no_downloaded)
+        try:
+            with open(args.file) as f:
+                tbd = f.readlines()
+                GetMusicFromList(tbd, args.ignore_downloaded, args.no_downloaded)
+        except FileNotFoundError:
+            print("The specified file was not found.")
+            print("Are you sure " + args.file + " exists here?") 
 
 
 def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
@@ -111,7 +117,12 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
     for song in queue:
         if song in downloaded and not IgnoreDownloadedFlag:
             continue
-        Download(song)
+        try:
+            Download(song)
+        except youtube_dl.DownloadError:
+            print("\nPlease install ffmpeg to download in the specified format.")
+            print("Exiting prematurely.")
+            break
         audio = DOWNLOADED_FILE
         if not DetailsFlag:
             (art, title) = GetBasicDetails(song)
@@ -136,7 +147,9 @@ def GetListFromURL(url):
 
 def GetListFromFile(path):
     """
-    Return a list of strings containing song details extracted from a file. The songs are supposed to be in individual lines, preferably
+    Return a list of strings containing song details extracted from a file. 
+
+    The songs are supposed to be in individual lines, preferably
     in the format '{artist} - {song}'.
     """
     pass
@@ -150,7 +163,6 @@ def Download(song):
     if song.strip() not in done_list:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             resutl = ydl.download(['ytsearch:' + str(song)])
-            # result = ydl.extract_info('https://www.youtube.com/watch?v=AZ1pHmWhIuY', download=True)
             # print(result)
         AddToDownloaded(song)
 
@@ -200,9 +212,9 @@ def UpdateDetails(audio, details):
     Update the metadata of the files.
     """
     keys = details.keys()
-    
-    print("Yo fam Imma update a lot of shit here, basically only to this little thing call " + audio)
-    
+
+    print("Updating metadata for " + audio)
+
     if 'album_art' in keys:
         img = requests.get(details['album_art'], stream=True)
         img = img.raw
@@ -223,18 +235,20 @@ def UpdateDetails(audio, details):
         file.save()
     file = EasyMP3(audio)
     if 'artist' in keys:
-        file["artist"]=(details['artist'])
-        file["albumartist"]=details['artist']
+        file["artist"] = (details['artist'])
+        file["albumartist"] = details['artist']
     if 'title' in keys:
         file["title"] = details['title']
     if 'album' in keys:
         file["album"] = details['album']
     file.save()
     print("Current tags:", file.tags)
-    
+
     file = ID3(audio)
     if 'lyrics' in keys:
-        file[u"USLT::'en'"] = (USLT(encoding=3, lang=u'eng', desc=u'desc', text=details['lyrics']))
+        file[u"USLT::'en'"] = (
+            USLT(encoding=3, lang=u'eng', desc=u'desc', text=details['lyrics'])
+        )
         file.save()
     print("Done!")
 
