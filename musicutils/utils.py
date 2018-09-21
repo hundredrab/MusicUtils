@@ -52,7 +52,7 @@ ydl_opts = {
 
 
 def Wrapper():
-    """ 
+    """
     The main function, handles all command line arguments etc.
     """
 
@@ -97,10 +97,11 @@ def main():
         try:
             with open(args.file) as f:
                 tbd = f.readlines()
-                GetMusicFromList(tbd, args.ignore_downloaded, args.no_downloaded)
+                GetMusicFromList(tbd, args.ignore_downloaded,
+                                 args.no_downloaded)
         except FileNotFoundError:
             print("The specified file was not found.")
-            print("Are you sure " + args.file + " exists here?") 
+            print("Are you sure " + args.file + " exists here?")
 
 
 def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
@@ -120,7 +121,7 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
         try:
             Download(song)
         except youtube_dl.DownloadError:
-            print("\nPlease install ffmpeg to download in the specified format.")
+            print("\nInstall ffmpeg to download in the specified format.")
             print("Exiting prematurely.")
             break
         audio = DOWNLOADED_FILE
@@ -138,7 +139,7 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
 
 def GetListFromURL(url):
     """
-    Return a list of strings containing song details after processing the URL. 
+    Return a list of strings containing song details after processing the URL.
 
     The URL is expected to be a billboards or a top-tens url.
     """
@@ -147,7 +148,7 @@ def GetListFromURL(url):
 
 def GetListFromFile(path):
     """
-    Return a list of strings containing song details extracted from a file. 
+    Return a list of strings containing song details extracted from a file.
 
     The songs are supposed to be in individual lines, preferably
     in the format '{artist} - {song}'.
@@ -169,7 +170,7 @@ def Download(song):
 
 def GetBasicDetails(song):
     """
-    Return the artist and title of the song. 
+    Return the artist and title of the song.
     """
     # TODO: Use RE to return the artist, title combination extracted from list.
     return ('artist', 'title')

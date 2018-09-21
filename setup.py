@@ -7,7 +7,9 @@ setup(
     version='0.1.dev2',
     packages=['musicutils', ],
     license='MIT',
-    description='Helpful library to download music from youtube using youtube-dl and add metadata.',
+    description='Helpful library and command-line-tool \
+        to download music, update metadata, rearrange \
+        files, and other common utilities.',
     long_description=long_description,
     author='Sourab Jha',
     author_email='jha.sourab@gmail.com',
