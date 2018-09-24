@@ -6,6 +6,7 @@ try:
     import os
     import re
     import requests
+    import sys
     import youtube_dl
     from mutagen import File
     from mutagen.id3 import ID3, APIC, _util, USLT
@@ -88,8 +89,19 @@ def main():
                         downloaded.txt.")
     parser.add_argument("-c", "--config", type=str,
                         help="Specify config file.")
+    parser.add_argument("--ignore-config", action="store_true",
+                        help="Ignore the default config file.")
+    parser.add_argument("--arrange", '-a', action="store_true",
+                        required="-d" in sys.argv or "--directory" in sys.argv,
+                        help="Rearrange directory into artsit->album folder.")
+    parser.add_argument("--directory", "-d", type=str,
+                        help="Specify a directory.")
 
     args = parser.parse_args()
+
+    if args.arrange:
+        Rearrange(args.directory)
+
     if args.url:
         print("You want an url:", args.url)
     if args.titles:
@@ -105,6 +117,31 @@ def main():
         except FileNotFoundError:
             print("The specified file was not found.")
             print("Are you sure " + args.file + " exists here?")
+
+
+def Rearrange(dir):
+    files = os.listdir(dir)
+    files = [_ for _ in files if _.endswith('.mp3') or _.endswith(
+        '.m4a') or _.endswith('mp4') or _.endswith(
+        '.wav') or _.endswith('.webm')]
+    print("Found " + str(len(files)) + " files in "+dir+".")
+    for audio in files:
+        try:
+            f = EasyMP3(dir+"/"+audio)
+            artist = f["artist"][0]
+            if artist == "" or artist == "Unknown":
+                artist = "unknown"
+            album = f["album"][0]
+            if album == "" or album == "Unknown":
+                album = "unknown"
+
+            if not os.path.exists(dir+"/"+artist):
+                os.makedirs(dir+"/"+artist)
+            if not os.path.exists(dir+"/"+artist+"/"+album):
+                os.makedirs(dir+"/"+artist+"/"+album)
+            os.rename(dir+"/"+audio, dir+"/"+artist+"/"+album+"/"+audio)
+        except:
+            print("Skipping file " + dir+"/"+audio)
 
 
 def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):

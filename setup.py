@@ -4,7 +4,7 @@ with open('README.md') as README:
     long_description = README.read()
 setup(
     name='MusicUtils',
-    version='0.1.dev3',
+    version='0.1.dev4',
     packages=['musicutils', ],
     license='MIT',
     description='Helpful library and command-line-tool \
