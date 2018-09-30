@@ -46,6 +46,16 @@ You may also replace a song title by it's incomplete lyrics, and in most cases, 
 
 In case of weird results, remember that the first result on Youtube is what is downloaded.
 
+### Rearranging files
+
+To arrange the music files which contain metadata neatly into folders (artist->album->files), use the following command.
+
+`mutils --arrange --directory /path/to/folder`
+
+or, more simply,
+
+`mutils -a -d path/to/folder`
+
 
 ## Manual installation of the project
 
