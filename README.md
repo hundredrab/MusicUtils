@@ -46,7 +46,7 @@ You may also replace a song title by it's incomplete lyrics, and in most cases, 
 
 In case of weird results, remember that the first result on Youtube is what is downloaded.
 
-**Downloading songs from a list in a url**
+### Downloading songs from a list in a url
 
 `mutils --url https://www.thetoptens.com/indie-rock-songs/ --count 20`
 
@@ -58,6 +58,17 @@ Count is optional, defaults to *10*.
 
 *Supported list sites:*
 - https://www.thetoptens.com/
+
+### Rearranging files
+
+To arrange the music files which contain metadata neatly into folders (artist->album->files), use the following command.
+
+`mutils --arrange --directory /path/to/folder`
+
+or, more simply,
+
+`mutils -a -d path/to/folder`
+
 
 ## Manual installation of the project
 
