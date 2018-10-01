@@ -46,6 +46,18 @@ You may also replace a song title by it's incomplete lyrics, and in most cases, 
 
 In case of weird results, remember that the first result on Youtube is what is downloaded.
 
+**Downloading songs from a list in a url**
+
+`mutils --url https://www.thetoptens.com/indie-rock-songs/ --count 20`
+
+OR
+
+`mutils -u https://www.thetoptens.com/indie-rock-songs/ -n 20`
+
+Count is optional, defaults to *10*.
+
+*Supported list sites:*
+- https://www.thetoptens.com/
 
 ## Manual installation of the project
 
