@@ -79,6 +79,8 @@ def main():
                         reference as.")
     parser.add_argument("-u", "--url", type=str,
                         help="Specify the url where list is located.")
+    parser.add_argument("-n", "--count", type=int,
+                        help="Number of files to download from playlist/url.")
     parser.add_argument("-r", "--repair_only", action="store_true",
                         help="Skip downloading and only add metadata.")
     parser.add_argument("--ignore_downloaded", action="store_true",
@@ -104,6 +106,11 @@ def main():
 
     if args.url:
         print("You want an url:", args.url)
+        if 'thetoptens' in args.url:
+            if args.count:
+                GetTopTensMusic(args.url, args.count)
+            else:
+                GetTopTensMusic(args.url)
     if args.titles:
         GetMusicFromList(args.titles, args.ignore_downloaded,
                          args.no_downloaded)
@@ -142,6 +149,16 @@ def Rearrange(dir):
             os.rename(dir+"/"+audio, dir+"/"+artist+"/"+album+"/"+audio)
         except:
             print("Skipping file " + dir+"/"+audio)
+
+
+def GetTopTensMusic(url, count=10):
+    res = requests.get(url)
+    soup = bs4.BeautifulSoup(res.text, 'lxml')
+    songs = soup.select('.i b')
+    songs = [i.getText() for i in songs]
+    songs = songs[:count]
+    print("Getting " + str(len(songs)) + " songs from the url.")
+    GetMusicFromList(songs, False, False)
 
 
 def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
