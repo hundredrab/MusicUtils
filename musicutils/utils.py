@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
-try:
-    import argparse
-    import bs4
-    import eyed3
-    import os
-    import re
-    import requests
-    import sys
-    import youtube_dl
-    from mutagen import File
-    from mutagen.id3 import ID3, APIC, _util, USLT
-    from mutagen import File
-    from mutagen.mp3 import EasyMP3
-except ModuleNotFoundError:
-    print("Couldn't import all the requirements. Maybe reinstall musicutils?\n\n")
-    raise
+import argparse
+import bs4
+import eyed3
+import os
+import re
+import requests
+import sys
+import youtube_dl
+from mutagen import File
+from mutagen.id3 import ID3, APIC, _util, USLT
+from mutagen import File
+from mutagen.mp3 import EasyMP3
 # import sysargs
 
 global DOWNLOADED_FILE
@@ -46,21 +42,8 @@ ydl_opts = {
     'forcefilename': True,
     'progress_hooks': [my_hook],
     'restrictfilenames': True,
+    'nocheckcertificate': True,
 }
-
-
-def Wrapper():
-    """
-    The main function, handles all command line arguments etc.
-    """
-
-    # TODO: This should properly handle the following, in addition to the flags:
-    # Default: A single song name in the format '{artist} - {song}'.
-    # Urls- Billboards and Top Tens at the least.
-    # Keywords for billboards genres.
-    # Filepaths for list of songs to download.
-    # Repair only: Accept a filepath and only repair the metadata of the songs there.
-    pass
 
 
 def main():
@@ -79,6 +62,8 @@ def main():
                         reference as.")
     parser.add_argument("-u", "--url", type=str,
                         help="Specify the url where list is located.")
+    parser.add_argument("-k", "--keyword", type=str,
+                        help="Add additional keywords for search.")
     parser.add_argument("-n", "--count", type=int,
                         help="Number of files to download from playlist/url.")
     parser.add_argument("-r", "--repair_only", action="store_true",
@@ -108,9 +93,17 @@ def main():
         print("You want an url:", args.url)
         if 'thetoptens' in args.url:
             if args.count:
-                GetTopTensMusic(args.url, args.count)
+                GetTopTensMusic(args.url, args.keyword, args.count)
             else:
-                GetTopTensMusic(args.url)
+                GetTopTensMusic(args.url, args.keyword)
+
+        if 'billboard' in args.url:
+            if args.count:
+                GetBillboardsMusic(args.url, args.count)
+            else:
+                GetBillboardsMusic(args.url)
+        if 'youtube.com' in args.url:
+            GetYoutubeMusic(args.url)
     if args.titles:
         GetMusicFromList(args.titles, args.ignore_downloaded,
                          args.no_downloaded)
@@ -151,14 +144,35 @@ def Rearrange(dir):
             print("Skipping file " + dir+"/"+audio)
 
 
-def GetTopTensMusic(url, count=10):
+def GetTopTensMusic(url, keyword, count=10):
+    if not keyword:
+        keyword = ''
     res = requests.get(url)
     soup = bs4.BeautifulSoup(res.text, 'lxml')
     songs = soup.select('.i b')
-    songs = [i.getText() for i in songs]
+    songs = [i.getText() + ' ' + str(keyword) for i in songs]
     songs = songs[:count]
     print("Getting " + str(len(songs)) + " songs from the url.")
     GetMusicFromList(songs, False, False)
+
+
+def GetYoutubeMusic(url):
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        resutl = ydl.download([str(url)])
+        # print(result)
+    AddToDownloaded(url)
+
+
+def GetBillboardsMusic(url, count=10):
+    res = requests.get(url, "lxml")
+    soup = bs4.BeautifulSoup(res.text, "lxml")
+    song_rows = soup.select('.chart-list-item')
+    music = []
+    for song in song_rows:
+        song_tup = tuple([song.select('.chart-list-item__title-text')[0].getText().strip(), song.select(
+            '.chart-list-item__artist')[0].getText().strip()])
+        music.append(song_tup[1] + ' - ' + song_tup[0])
+    GetMusicFromList(music[:count], False, False)
 
 
 def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
@@ -169,6 +183,7 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
     """
 
     '''Remove next 3.'''
+    print(len(queue))
     downloaded = []
     DetailsFlag = False
     ExtendedFlag = False
@@ -194,25 +209,6 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
             AddToDownloaded(song)
 
 
-def GetListFromURL(url):
-    """
-    Return a list of strings containing song details after processing the URL.
-
-    The URL is expected to be a billboards or a top-tens url.
-    """
-    pass
-
-
-def GetListFromFile(path):
-    """
-    Return a list of strings containing song details extracted from a file.
-
-    The songs are supposed to be in individual lines, preferably
-    in the format '{artist} - {song}'.
-    """
-    pass
-
-
 def Download(song):
     """
     Download a song using Youtube-dl and return it's file path.
@@ -223,14 +219,6 @@ def Download(song):
             resutl = ydl.download(['ytsearch:' + str(song)])
             # print(result)
         AddToDownloaded(song)
-
-
-def GetBasicDetails(song):
-    """
-    Return the artist and title of the song.
-    """
-    # TODO: Use RE to return the artist, title combination extracted from list.
-    return ('artist', 'title')
 
 
 def GetExtendedDetails(song):
