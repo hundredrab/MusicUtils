@@ -11,13 +11,29 @@ from mutagen import File
 from mutagen.id3 import ID3, APIC, _util, USLT
 from mutagen import File
 from mutagen.mp3 import EasyMP3
-# import sysargs
+import logging
+import yaml
+from os.path import expanduser
+# from sys import argv
 
 global DOWNLOADED_FILE
 global verbose
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+        '%(asctime)s %(name) - 12s %(levelname) -8s %(message)s'
+        )
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 verbose = True
 
+home = expanduser("~")
+CONFIG_FILE = home + "/musicutils.yaml"
+# conf = yaml.safe_load(open(CONFIG_FILE))
+
+# logger.debug("Config: %s", conf)
 
 def my_hook(d):
     if d['status'] == 'finished':
@@ -37,7 +53,7 @@ ydl_opts = {
     }],
     'outtmpl': "music_new/%(title)s-%(id)s.%(ext)s",
     'noplaylist': True,    # only download single song, not playlist
-    'quiet': True,  # Don't print anything
+    'quiet': False,  # Don't print anything
     'no_warnings': True,
     'forcefilename': True,
     'progress_hooks': [my_hook],
@@ -53,7 +69,7 @@ def main():
     # global DetailsFlag, ExtendedFlag, IgnoreDownloadedFlag, NoDownloadedAddFlag, OutPath, DownloadedListPath
     global done_list
     done_list = []
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument("titles", type=str, nargs='*',
                         help="All the names separated by a space will be \
                         searched and downloaded.")
@@ -84,10 +100,20 @@ def main():
     parser.add_argument("--directory", "-d", type=str,
                         help="Specify a directory.")
 
-    args = parser.parse_args()
+    if os.path.exists(CONFIG_FILE):
+        logging.debug("Using config file.")
+        sys.argv = ['@'+CONFIG_FILE] + sys.argv
+    else:
+        logging.debug("No conf file found at %s", CONFIG_FILE)
+    args = parser.parse_args(sys.argv)
+    logger.debug("ARGV: %s", sys.argv)
+
+    logger.debug("ARGUMENTS SUPPLIED: %s", str(args))
 
     if args.arrange:
+        logger.debug("Arranging in the direcotory: %s", args.directory)
         Rearrange(args.directory)
+        logger.debug("Rearrangement finished.")
 
     if args.url:
         print("You want an url:", args.url)
@@ -147,19 +173,21 @@ def Rearrange(dir):
 def GetTopTensMusic(url, keyword, count=10):
     if not keyword:
         keyword = ''
+    logger.debug("Getting top %s titles from the url %s with the keyword: %s", count, url, keyword)
     res = requests.get(url)
     soup = bs4.BeautifulSoup(res.text, 'lxml')
     songs = soup.select('.i b')
     songs = [i.getText() + ' ' + str(keyword) for i in songs]
     songs = songs[:count]
+    logger.debug("Found titles: %s", songs)
     print("Getting " + str(len(songs)) + " songs from the url.")
     GetMusicFromList(songs, False, False)
 
 
 def GetYoutubeMusic(url):
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        resutl = ydl.download([str(url)])
-        # print(result)
+        result = ydl.download([str(url)])
+    logger.debug("Result for Youtube-url download %s", result)
     AddToDownloaded(url)
 
 
@@ -184,6 +212,7 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
 
     '''Remove next 3.'''
     print(len(queue))
+    logger.debug("Queud up: %s", queue)
     downloaded = []
     DetailsFlag = False
     ExtendedFlag = False
@@ -198,7 +227,7 @@ def GetMusicFromList(queue, IgnoreDownloadedFlag, NoDownloadedAddFlag):
             break
         audio = DOWNLOADED_FILE
         if not DetailsFlag:
-            (art, title) = GetBasicDetails(song)
+            # (art, title) = GetBasicDetails(song)
             if not ExtendedFlag:
                 extDetail = GetExtendedDetails(song)  # A dictionary
                 UpdateDetails(DOWNLOADED_FILE, extDetail)
@@ -220,7 +249,8 @@ def Download(song):
             # print(result)
         AddToDownloaded(song)
 
-
+def GetBasicDetails(song):
+    return None
 def GetExtendedDetails(song):
     """Returns full details of song."""
     details = {}
