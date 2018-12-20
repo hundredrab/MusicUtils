@@ -14,7 +14,6 @@ from mutagen.mp3 import EasyMP3
 import logging
 import yaml
 from os.path import expanduser
-# from sys import argv
 
 global DOWNLOADED_FILE
 global verbose
@@ -66,7 +65,7 @@ ydl_opts = {
     'progress_hooks': [my_hook],
     'restrictfilenames': True,
     'nocheckcertificate': True,
-    'default_search': 'auto',
+    # 'default_search': 'auto',
 }
 
 
@@ -152,6 +151,7 @@ def main():
         if 'youtube.com' in args.url:
             GetYoutubeMusic(args.url)
 
+    args.titles = args.titles[2:]
     if args.titles:
         logger.debug("Getting titles: %s", args.titles)
         GetMusicFromList(args.titles, args.ignore_downloaded,
