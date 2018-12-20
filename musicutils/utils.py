@@ -18,6 +18,7 @@ from os.path import expanduser
 
 global DOWNLOADED_FILE
 global verbose
+global CONFIG_FILE
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 formatter = logging.Formatter(
@@ -31,7 +32,13 @@ verbose = True
 
 home = expanduser("~")
 CONFIG_FILE = home + "/musicutils.yaml"
-# conf = yaml.safe_load(open(CONFIG_FILE))
+
+# If default conf file does not exist, create it
+if not os.path.exists(CONFIG_FILE):
+    os.makedirs(CONFIG_FILE)
+    with open(CONFIG_FILE, 'a') as f:
+        pass
+    logger.debug("Created new config file at %s", CONFIG_FILE)
 
 # logger.debug("Config: %s", conf)
 
@@ -51,14 +58,15 @@ ydl_opts = {
         'preferredcodec': 'mp3',
         'preferredquality': '192',
     }],
-    'outtmpl': "music_new/%(title)s-%(id)s.%(ext)s",
+    'outtmpl': "%(title)s-%(id)s.%(ext)s",
     'noplaylist': True,    # only download single song, not playlist
-    'quiet': False,  # Don't print anything
+    'quiet': False,
     'no_warnings': True,
     'forcefilename': True,
     'progress_hooks': [my_hook],
     'restrictfilenames': True,
     'nocheckcertificate': True,
+    'default_search': 'auto',
 }
 
 
@@ -68,6 +76,7 @@ def main():
     """
     # global DetailsFlag, ExtendedFlag, IgnoreDownloadedFlag, NoDownloadedAddFlag, OutPath, DownloadedListPath
     global done_list
+    global CONFIG_FILE
     done_list = []
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument("titles", type=str, nargs='*',
@@ -95,10 +104,14 @@ def main():
     parser.add_argument("--ignore-config", action="store_true",
                         help="Ignore the default config file.")
     parser.add_argument("--arrange", '-a', action="store_true",
-                        required="-d" in sys.argv or "--directory" in sys.argv,
                         help="Rearrange directory into artsit->album folder.")
     parser.add_argument("--directory", "-d", type=str,
                         help="Specify a directory.")
+
+    # Check if arguments have a config file and use that.
+    args_temp = parser.parse_args()
+    if args_temp.config:
+        CONFIG_FILE = args_temp.config
 
     if os.path.exists(CONFIG_FILE):
         logging.debug("Using config file.")
@@ -110,10 +123,18 @@ def main():
 
     logger.debug("ARGUMENTS SUPPLIED: %s", str(args))
 
+    if args.directory and os.path.exists(args.directory):
+        ydl_opts['outtmpl'] = os.path.join(args.directory, ydl_opts['outtmpl'])
+        logger.debug("Output path: %s", ydl_opts['outtmpl'])
+
     if args.arrange:
-        logger.debug("Arranging in the direcotory: %s", args.directory)
-        Rearrange(args.directory)
-        logger.debug("Rearrangement finished.")
+        if not args.directory:
+            print("Need a directory to rearrange. Supply one with '-d' or '--directory'.")
+            logger.debug("Directory not supplied, rearrangement failed.")
+        else:
+            logger.debug("Arranging in the direcotory: %s", args.directory)
+            Rearrange(args.directory)
+            logger.debug("Rearrangement finished.")
 
     if args.url:
         print("You want an url:", args.url)
@@ -130,7 +151,9 @@ def main():
                 GetBillboardsMusic(args.url)
         if 'youtube.com' in args.url:
             GetYoutubeMusic(args.url)
+
     if args.titles:
+        logger.debug("Getting titles: %s", args.titles)
         GetMusicFromList(args.titles, args.ignore_downloaded,
                          args.no_downloaded)
 
