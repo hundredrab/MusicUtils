@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 import argparse
-import bs4
-import eyed3
+import logging
 import os
 import re
-import requests
 import sys
+from os.path import expanduser
+
+import bs4
+import eyed3
 import youtube_dl
 from mutagen import File
-from mutagen.id3 import ID3, APIC, _util, USLT
-from mutagen import File
+from mutagen.id3 import APIC, ID3, USLT, _util
 from mutagen.mp3 import EasyMP3
-import logging
+
+import requests
 import yaml
-from os.path import expanduser
 
 global DOWNLOADED_FILE
 global verbose
@@ -73,7 +74,6 @@ def main():
     """
     Initialize as global variable the settings as found in the config file and the command-line arguments.
     """
-    # global DetailsFlag, ExtendedFlag, IgnoreDownloadedFlag, NoDownloadedAddFlag, OutPath, DownloadedListPath
     global done_list
     global CONFIG_FILE
     done_list = []
