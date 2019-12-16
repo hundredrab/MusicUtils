@@ -22,8 +22,8 @@ global CONFIG_FILE
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 formatter = logging.Formatter(
-        '%(asctime)s %(name) - 12s %(levelname) -8s %(message)s'
-        )
+    '%(asctime)s %(name) - 12s %(levelname) -8s %(message)s'
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
@@ -34,13 +34,14 @@ home = expanduser("~")
 CONFIG_FILE = home + "/musicutils.yaml"
 
 # If default conf file does not exist, create it
-if not os.path.exists(CONFIG_FILE):
-    os.makedirs(CONFIG_FILE)
+if not os.path.exists(os.path.dirname(CONFIG_FILE)):
+    os.makedirs(os.path.dirname(CONFIG_FILE))
     with open(CONFIG_FILE, 'a') as f:
         pass
     logger.debug("Created new config file at %s", CONFIG_FILE)
 
 # logger.debug("Config: %s", conf)
+
 
 def my_hook(d):
     if d['status'] == 'finished':
@@ -151,7 +152,7 @@ def main():
         if 'youtube.com' in args.url:
             GetYoutubeMusic(args.url)
 
-    args.titles = args.titles[2:]
+    args.titles = args.titles[1:]
     if args.titles:
         logger.debug("Getting titles: %s", args.titles)
         GetMusicFromList(args.titles, args.ignore_downloaded,
@@ -196,7 +197,8 @@ def Rearrange(dir):
 def GetTopTensMusic(url, keyword, count=10):
     if not keyword:
         keyword = ''
-    logger.debug("Getting top %s titles from the url %s with the keyword: %s", count, url, keyword)
+    logger.debug(
+        "Getting top %s titles from the url %s with the keyword: %s", count, url, keyword)
     res = requests.get(url)
     soup = bs4.BeautifulSoup(res.text, 'lxml')
     songs = soup.select('.i b')
@@ -272,17 +274,29 @@ def Download(song):
             # print(result)
         AddToDownloaded(song)
 
+
 def GetBasicDetails(song):
     return None
+
+
 def GetExtendedDetails(song):
     """Returns full details of song."""
     details = {}
-    res = requests.get("https://www.google.co.in/search?q=genius " + song)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) '
+                             'Gecko/20100101 Firefox/12.0'
+              }
+
+    res = requests.get(
+        "https://www.google.co.in/search?q=genius " + song,
+        headers=headers
+    )
     soup = bs4.BeautifulSoup(res.text, 'lxml')
+    print("we're soup-y")
     try:
         link = soup.select('.r a')[0].get('href')
+        print("links:", link)
 
-        res2 = requests.get("https://google.com" + link)
+        res2 = requests.get(link)
         soup = bs4.BeautifulSoup(res2.text, 'lxml')
 
         infos = soup.select('.metadata_unit-info a')
